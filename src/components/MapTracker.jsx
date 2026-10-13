@@ -28,6 +28,9 @@ const getSpeedColor = (speed) => {
 };
 
 export default function MapTracker({ gpsData, activeDataPoint }) {
+  const interpretedSpeed = gpsData.some((row) =>
+    Number.isFinite(row.speed_knots),
+  );
   const displayData = useMemo(() => {
     const step = Math.max(1, Math.ceil(gpsData.length / 1800));
     return gpsData.filter((_, i) => i % step === 0 || i === gpsData.length - 1);
@@ -78,7 +81,7 @@ export default function MapTracker({ gpsData, activeDataPoint }) {
               [p2.lat, p2.lon],
             ]}
             pathOptions={{
-              color: getSpeedColor(avgSpeed),
+              color: interpretedSpeed ? getSpeedColor(avgSpeed) : "#822433",
               weight: 4,
               opacity: 0.9,
             }}
@@ -88,7 +91,7 @@ export default function MapTracker({ gpsData, activeDataPoint }) {
     }
 
     return segments;
-  }, [displayData]);
+  }, [displayData, interpretedSpeed]);
 
   if (!bounds.length) {
     return (
@@ -106,30 +109,32 @@ export default function MapTracker({ gpsData, activeDataPoint }) {
   return (
     <div className="relative rounded-3xl overflow-hidden border border-gray-100 shadow-sm">
       {/* Speed Legend */}
-      <div className="absolute top-4 right-4 z-[1000] bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-gray-100 shadow-xl space-y-3 min-w-[120px]">
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-bottom border-gray-100 pb-1">
-          Velocità (kn)
-        </p>
-        <div className="space-y-2">
-          {[
-            ["#00E5FF", "< 5"],
-            ["#00E676", "5-12"],
-            ["#FFEA00", "12-18"],
-            ["#FF9100", "18-24"],
-            ["#FF1744", "> 24"],
-          ].map(([color, label]) => (
-            <div key={label} className="flex items-center gap-3">
-              <span
-                className="w-2.5 h-2.5 rounded-full shadow-sm"
-                style={{ background: color }}
-              />
-              <span className="text-[11px] font-bold text-gray-600">
-                {label}
-              </span>
-            </div>
-          ))}
+      {interpretedSpeed && (
+        <div className="absolute top-4 right-4 z-[1000] bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-gray-100 shadow-xl space-y-3 min-w-[120px]">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-bottom border-gray-100 pb-1">
+            Velocità (kn)
+          </p>
+          <div className="space-y-2">
+            {[
+              ["#00E5FF", "< 5"],
+              ["#00E676", "5-12"],
+              ["#FFEA00", "12-18"],
+              ["#FF9100", "18-24"],
+              ["#FF1744", "> 24"],
+            ].map(([color, label]) => (
+              <div key={label} className="flex items-center gap-3">
+                <span
+                  className="w-2.5 h-2.5 rounded-full shadow-sm"
+                  style={{ background: color }}
+                />
+                <span className="text-[11px] font-bold text-gray-600">
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <MapContainer
         center={bounds[0]}

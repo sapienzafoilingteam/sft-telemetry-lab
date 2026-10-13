@@ -4,6 +4,8 @@
 
 `npm ci`, `npm run lint`, `npm test`, `npm run build`. La CI esegue gli stessi passi senza hardware. I test verificano CSV GPS/IMU/combinati, protocollo D, conversioni, esportazione/reimportazione, errori e passaggio di mezzanotte.
 
+Il codec SMC ha test per: campioni e orari duplicati, byte esatti dopo export/backup, scelta esplicita delle unità, file troncati, conteggi incoerenti, profili sconosciuti, valori invalidi, cambio di giorno e buffer con offset. Le fixture sono sintetiche.
+
 ## Browser
 
 1. Apri l'esempio; verifica mappa, velocità e assetto.
@@ -11,7 +13,8 @@
 3. Seleziona un intervallo; verifica quantità di campioni e tempi.
 4. Esporta CSV e backup JSON e reimporta; verifica unità e note.
 5. Verifica 390px e desktop, tastiera, focus e messaggi di errore.
-6. Collega un WebSocket simulato con messaggi D, registra, termina e verifica i dati ricevuti.
+6. Apri l’esempio SMC sintetico; verifica velocità non interpretata, scelta dell’unità, salvataggio e backup.
+7. Collega un WebSocket simulato con messaggi D, registra, termina e verifica i dati ricevuti.
 
 ## Hardware
 

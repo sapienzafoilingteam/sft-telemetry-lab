@@ -28,9 +28,17 @@ L’app riceve dati; non invia comandi alla scheda e non avvia la registrazione 
 
 ## Archivio
 
-Importa CSV/SMC GPS o IMU, CSV completi dell’ESP32 oppure backup JSON di Telemetry Lab. Ogni file importato crea una sessione indipendente; i file GPS e IMU separati non vengono sincronizzati automaticamente.
+Importa CSV GPS o IMU, CSV completi dell’ESP32, SMC binari SuMoth del profilo osservato oppure backup JSON di Telemetry Lab. Ogni file importato crea una sessione indipendente; i file GPS e IMU separati non vengono sincronizzati automaticamente.
 
 Le sessioni sono conservate in IndexedDB nel browser e nell’origine usata (protocollo, host e porta). Non esiste sincronizzazione cloud. **Backup** esporta dati, nome e note in JSON; puoi reimportarlo anche in un altro browser. La cancellazione dei dati del browser elimina l’archivio locale.
+
+## File dell’elettronica SuMoth
+
+La webapp legge i SMC binari del profilo osservato nel file di riferimento fornito dal team. Conserva coordinate, velocità grezza, satelliti, orari e intestazione. Puoi salvare la sessione, analizzarne intervalli, esportare CSV/backup e ricostruire il SMC originale.
+
+L'unità della velocità non è ancora confermata nella specifica del logger: di default non vengono mostrate velocità in nodi. L'interfaccia permette di scegliere esplicitamente un'interpretazione. Il file non contiene dati IMU o altitudine. Per generare nuovi SMC compatibili con l'elettronica servono la specifica dei campi opachi e la conferma delle unità. [Struttura osservata e limiti](docs/PROTOCOL.md#sumoth-smc-binario--profilo-osservato).
+
+L'esempio **SuMoth SMC · sintetico** consente di provare il flusso senza hardware o registrazioni reali. Per rigenerarlo: `node scripts/generate_smc_fixture.js`.
 
 ## Analisi
 

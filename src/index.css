@@ -715,3 +715,17 @@ label:focus-within {
     transition: none !important;
   }
 }
+.field select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #ddd3d6;
+  border-radius: 6px;
+  padding: 12px;
+  background: #faf8f9;
+  color: #252023;
+  font: inherit;
+}
+.field select:focus-visible {
+  outline: 3px solid #b66878;
+  outline-offset: 4px;
+}

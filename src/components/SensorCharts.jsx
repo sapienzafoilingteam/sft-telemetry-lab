@@ -41,6 +41,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 function Chart({ title, color, children, height = 180 }) {
   const keys = React.Children.toArray(children.props.children)
+    .filter((child) => child.type === Line)
     .map((child) => child.props?.dataKey)
     .filter(Boolean);
   if (
@@ -88,6 +89,9 @@ const grid = (
 
 export function GpsCharts({ data, onHoverData }) {
   const chartData = useDownsampledData(data);
+  const interpretedSpeed = chartData.some((row) =>
+    Number.isFinite(row.speed_knots),
+  );
 
   if (!chartData.length) return null;
 
@@ -128,7 +132,15 @@ export function GpsCharts({ data, onHoverData }) {
         </h3>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Chart title="Velocità (nodi)" color="#822433" height={220}>
+        <Chart
+          title={
+            interpretedSpeed
+              ? "Velocità (nodi)"
+              : "Velocità grezza · unità non confermata"
+          }
+          color="#822433"
+          height={220}
+        >
           <LineChart {...shared}>
             {grid}
             {xAxis}
@@ -136,8 +148,8 @@ export function GpsCharts({ data, onHoverData }) {
             <Tooltip content={<CustomTooltip />} />
             <Line
               type="monotone"
-              dataKey="speed_knots"
-              name="Speed"
+              dataKey={interpretedSpeed ? "speed_knots" : "speed_raw"}
+              name={interpretedSpeed ? "Velocità (kn)" : "Valore grezzo"}
               stroke="#822433"
               strokeWidth={3}
               dot={false}
