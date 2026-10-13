@@ -12,19 +12,20 @@ const fixture = () =>
       new URL("./fixtures/sumoth-synthetic.smc", import.meta.url),
     ),
   );
-test("SMC binary preserves each sample, integer-second timing and raw speed without assuming an unit", () => {
+test("SMC binary preserves raw speed and converts the verified mm/s profile to knots", () => {
   const { samples, smc } = parseSMC(fixture());
   assert.equal(samples.length, 40);
   assert.equal(smc.recordCount, 40);
   assert.equal(smc.date, "2026-01-01");
   assert.equal(smc.deviceId, "DEMO");
-  assert.equal(smc.speedUnit, "unknown");
+  assert.equal(smc.speedUnit, "mm/s");
+  assert.equal(smc.nominalRateHz, 2);
   assert.equal(samples[0].timestamp_s, 0);
   assert.equal(samples[1].timestamp_s, 0);
   assert.equal(samples.at(-1).timestamp_s, 19);
   assert.equal(samples[0].lat, 0.01);
   assert.equal(samples[0].speed_raw, 1000);
-  assert.equal(samples[0].speed_knots, undefined);
+  assert(Math.abs(samples[0].speed_knots - 3600 / 1852) < 1e-9);
   assert.equal(samples[0].pitch_deg, undefined);
 });
 test("SMC original and JSON backup roundtrip preserve all binary bytes", () => {

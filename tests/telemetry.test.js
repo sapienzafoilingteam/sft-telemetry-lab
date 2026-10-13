@@ -62,3 +62,21 @@ test("malformed and empty sessions are rejected instead of displaying fabricated
   assert.throws(() => parseCSV("timestamp_ms,lat,lon\n0,0,0"));
   assert.equal(metrics([{ timestamp_s: 0, roll_deg: 1 }]).maxSpeed, null);
 });
+
+test("official SuMoth CSV metadata selects km/h instead of legacy ECK1 knots", () => {
+  const text =
+    "#DEVICE:DEMO RATE:2Hz VERSION:SMC3\n20260101,095038,0.01,0.01,18.52,8\n20260101,095038,0.010001,0.010001,9.26,8\n#CRC32:00000000";
+  const rows = parseCSV(text);
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].speed_knots, 10);
+  assert.equal(rows[1].speed_knots, 5);
+  assert.equal(rows[1].timestamp_s, 0);
+  assert.throws(() => parseCSV(text.replace("SMC3", "SMC4")), /non supportata/);
+  assert.throws(() => parseCSV(text.replace("18.52,8", "bad,8")), /non valido/);
+  assert.throws(
+    () => parseCSV(text.replace("20260101,095038", "date,clock")),
+    /non valido/,
+  );
+  const legacy = parseCSV("20260101,095038,0.01,0.01,18.52,8");
+  assert.equal(legacy[0].speed_knots, 18.52);
+});

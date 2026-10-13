@@ -36,7 +36,7 @@ Le sessioni sono conservate in IndexedDB nel browser e nell’origine usata (pro
 
 La webapp legge i SMC binari del profilo osservato nel file di riferimento fornito dal team. Conserva coordinate, velocità grezza, satelliti, orari e intestazione. Puoi salvare la sessione, analizzarne intervalli, esportare CSV/backup e ricostruire il SMC originale.
 
-L'unità della velocità non è ancora confermata nella specifica del logger: di default non vengono mostrate velocità in nodi. L'interfaccia permette di scegliere esplicitamente un'interpretazione. Il file non contiene dati IMU o altitudine. Per generare nuovi SMC compatibili con l'elettronica servono la specifica dei campi opachi e la conferma delle unità. [Struttura osservata e limiti](docs/PROTOCOL.md#sumoth-smc-binario--profilo-osservato).
+La velocità del profilo osservato è in mm/s, verificata contro tutti i record del CSV esportato dalla dashboard SuMoth, e viene convertita automaticamente in nodi. Il Lab importa anche quel CSV, riconoscendo il metadato SMC3 e la velocità in km/h. Il file non contiene dati IMU o altitudine. Per generare nuovi SMC compatibili con l'elettronica serve ancora la specifica dei campi opachi. [Struttura osservata e limiti](docs/PROTOCOL.md#sumoth-smc-binario--profilo-osservato).
 
 L'esempio **SuMoth SMC · sintetico** consente di provare il flusso senza hardware o registrazioni reali. Per rigenerarlo: `node scripts/generate_smc_fixture.js`.
 

@@ -13,7 +13,7 @@ Il codec SMC ha test per: campioni e orari duplicati, byte esatti dopo export/ba
 3. Seleziona un intervallo; verifica quantità di campioni e tempi.
 4. Esporta CSV e backup JSON e reimporta; verifica unità e note.
 5. Verifica 390px e desktop, tastiera, focus e messaggi di errore.
-6. Apri l’esempio SMC sintetico; verifica velocità non interpretata, scelta dell’unità, salvataggio e backup.
+6. Apri l’esempio SMC sintetico; verifica conversione mm/s in nodi verificata, scelta alternativa dell’unità, salvataggio e backup.
 7. Collega un WebSocket simulato con messaggi D, registra, termina e verifica i dati ricevuti.
 
 ## Hardware
@@ -25,3 +25,5 @@ Il codec SMC ha test per: campioni e orari duplicati, byte esatti dopo export/ba
 | CSV SD                           | Importazione            | Formato testato sinteticamente | Da eseguire con sessione reale |
 
 Per ogni prova fisica registra commit firmware/webapp, dispositivo, alimentazione, sensori, durata, frequenza, numero di campioni attesi/ricevuti, disconnessioni e risultato di backup/ripristino. Non pubblicare coordinate reali per documentare una prova.
+
+Il CSV SuMoth ha una regressione dedicata: metadato SMC3, conversione km/h, commento CRC, record duplicati e rifiuto di profili/record invalidi. La stessa struttura senza metadato continua a essere interpretata come ECK1 in nodi.

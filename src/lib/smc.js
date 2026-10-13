@@ -80,6 +80,7 @@ export function parseSMC(input) {
       smc_lat_e6: latE6,
       smc_lon_e6: lonE6,
       speed_raw: speedRaw,
+      speed_knots: (speedRaw * 0.0036) / 1.852,
       satellites,
     };
     if (satellites > 0 && !(latE6 === 0 && lonE6 === 0)) {
@@ -96,7 +97,9 @@ export function parseSMC(input) {
       deviceId: new TextDecoder().decode(bytes.slice(13, 17)),
       headerBytes: Array.from(bytes.slice(0, SMC_HEADER_SIZE)),
       recordCount: count,
-      speedUnit: "unknown",
+      speedUnit: "mm/s",
+      speedUnitEvidence: "sumoth-dashboard-csv-comparison",
+      nominalRateHz: 2,
       timeBasis: "device-clock-unknown-timezone",
       precisionSeconds: 1,
     },

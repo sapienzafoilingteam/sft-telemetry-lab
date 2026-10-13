@@ -41,7 +41,7 @@ L'importazione ordina sul timestamp e sottrae il primo tempo. File con errori di
 
 ## SuMoth SMC binario · profilo osservato
 
-Il team ha ricevuto il logger dall’organizzazione della SuMoth Challenge e recuperava i file dalla sua SD attraverso il Wi-Fi dell’ESP32. Questo flusso di download non dimostra che il logger esponga il WebSocket del firmware del team: endpoint e protocollo di trasferimento devono ancora essere verificati. Per ora scaricare il file dalla pagina del dispositivo e importarlo nel Lab.
+Il team ha ricevuto il logger dall’organizzazione della SuMoth Challenge e recuperava i file dalla sua SD attraverso il Wi-Fi dell’ESP32, rete `SFT-Telemetry`. Questo flusso di download non dimostra che il logger esponga il WebSocket del firmware del team: endpoint e protocollo di trasferimento devono ancora essere verificati. Per ora scaricare il file dalla pagina del dispositivo e importarlo nel Lab.
 
 Il file `.smc` fornito dal team è binario: non va passato a PapaParse. `src/lib/smc.js` riconosce il magic little endian `0x534d4331` (byte `31 43 4d 53`) e il profilo osservato con byte 4 = 3, byte 5 = 17 e byte 17 = 2.
 
@@ -72,7 +72,9 @@ La sessione conserva `smc.headerBytes`, `smc.date`, `smc.deviceId`, `smc.speedUn
 
 La precisione temporale è un secondo; non distribuire artificialmente i record duplicati nel secondo. L'ordine del file resta invariato; un salto indietro inferiore a 12 ore è respinto, uno maggiore viene interpretato come cambio di giorno. Il fuso dell'orario dispositivo non è dichiarato. Nei record con zero satelliti o coordinate `(0,0)` il punto mappa non viene creato, ma il campione grezzo resta conservato. Un numero positivo di satelliti da solo non certifica la qualità del fix.
 
-Il confronto locale tra spostamenti GPS e velocità grezza del file suggerisce **mm/s**, ma non conferma l'unità. Di default le velocità in nodi sono assenti: l'utente deve scegliere esplicitamente l'unità, che viene salvata come interpretazione della sessione. L'app rende visibile l'incertezza anche dopo la scelta.
+L’unità **mm/s** è stata verificata confrontando tutti i 39.145 record con l’esportazione CSV della [dashboard ufficiale SuMoth](https://gps.sumoth.org/dashboard.php): velocità CSV = valore binario × 0,0036, in km/h con due decimali. Coordinate, orari e satelliti corrispondono per tutti i record. Il CSV dichiara `RATE:2Hz VERSION:SMC3`; la pagina riporta 16,0 kn massimi e 2,7 kn medi per il file di riferimento. I nuovi import SMC usano quindi mm/s e vengono convertiti in nodi; i valori grezzi restano conservati. Un backup precedente mantiene l’interpretazione scelta, anche se impostata a nessuna conversione. Questa verifica riguarda il profilo osservato, non le varianti sconosciute.
+
+Il CSV ufficiale contiene una riga iniziale `#DEVICE:… RATE:2Hz VERSION:SMC3`, record `YYYYMMDD,HHMMSS,lat,lon,speed_kmh,satellites` e un commento finale `#CRC32:…`. Il parser riconosce il metadato e converte da km/h; il CSV ECK1 privo del metadato continua a usare nodi. Il checksum CSV non è verificato: il commento finale viene ignorato e non va confuso con i campi opachi del binario. La dashboard presenta gli orari come UTC; nel binario il fuso rimane non dichiarato.
 
 **Esporta SMC originale** ricostruisce l'intera registrazione preservando intestazione e record. Non esporta un intervallo o nuove registrazioni live in questo formato: modificare i campi opachi senza la specifica potrebbe produrre un file incompatibile. Gli intervalli si esportano in CSV con `speed_raw` e, se scelta, `speed_knots`. La specifica ufficiale è necessaria prima di promettere la produzione di nuovi SMC per l'elettronica.
 

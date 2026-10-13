@@ -641,7 +641,7 @@ function App() {
                     dato IMU o altitudine.
                   </p>
                   <label className="field">
-                    Unità della velocità da confermare con il logger
+                    Interpretazione della velocità SMC
                     <select
                       value={session.smc.speedUnit}
                       onChange={(e) =>
@@ -656,10 +656,10 @@ function App() {
                       }
                     >
                       <option value="unknown">
-                        Non confermata · conserva solo il valore grezzo
+                        Solo valore grezzo · nessuna conversione
                       </option>
                       <option value="mm/s">
-                        Millimetri al secondo · ipotesi da verificare
+                        Millimetri al secondo · verificati con CSV SuMoth
                       </option>
                       <option value="cm/s">Centimetri al secondo</option>
                       <option value="0.01 kn">Centesimi di nodo</option>
@@ -667,8 +667,10 @@ function App() {
                   </label>
                   <p className="helper">
                     {session.smc.speedUnit === "unknown"
-                      ? "Velocità massima e media in nodi non disponibili finché non viene scelta l’unità. Il confronto tra velocità grezza e spostamenti GPS suggerisce mm/s, ma non conferma la specifica."
-                      : `Conversione applicata secondo l’unità scelta: ${session.smc.speedUnit}. L’unità originale rimane da confermare nella specifica del logger.`}
+                      ? "Conversione disattivata. Per il profilo osservato SMC3 l’unità mm/s è stata verificata confrontando tutti i campioni con il CSV della dashboard SuMoth."
+                      : session.smc.speedUnit === "mm/s"
+                        ? "Velocità in mm/s, convertita in nodi. Verifica: tutti i 39.145 campioni del file di riferimento corrispondono al CSV ufficiale in km/h. Frequenza nominale dichiarata nel CSV: 2 Hz."
+                        : `Interpretazione alternativa scelta: ${session.smc.speedUnit}. Differisce dall’unità mm/s verificata per questo profilo.`}
                   </p>
                   <button
                     className="button"

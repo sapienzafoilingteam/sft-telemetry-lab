@@ -71,10 +71,28 @@ export const hasImu = (r) =>
     "gyro_z",
   ].some((k) => Number.isFinite(r[k]));
 export function parseCSV(text) {
+  const sumoth = /^#DEVICE:\S+ RATE:2Hz VERSION:SMC3\s*$/m.test(text);
+  if (text.trimStart().startsWith("#DEVICE:") && !sumoth)
+    throw new Error("CSV SuMoth: versione o frequenza non supportata.");
+  if (sumoth)
+    text = text
+      .split(/\r?\n/)
+      .filter((line) => !line.startsWith("#"))
+      .join("\n");
   const first = Papa.parse(text.trim(), { skipEmptyLines: true }).data[0];
+  if (sumoth && (!/^\d{8}$/.test(String(first?.[0])) || first.length !== 6))
+    throw new Error("CSV SuMoth: record iniziale non valido.");
   let rows;
   if (/^\d{8}$/.test(String(first?.[0])) && first.length === 6) {
     rows = Papa.parse(text, { skipEmptyLines: true }).data.map((a) => {
+      if (
+        sumoth &&
+        (a.length !== 6 ||
+          !/^\d{8}$/.test(a[0]) ||
+          !/^\d{6}$/.test(a[1]) ||
+          a.some((v) => v === "" || !Number.isFinite(Number(v))))
+      )
+        throw new Error("CSV SuMoth: record non valido.");
       const t = String(a[1]).padStart(6, "0");
       const d = String(a[0]);
       return {
@@ -88,8 +106,9 @@ export function parseCSV(text) {
         ),
         lat: a[2],
         lon: a[3],
-        speed_knots: a[4],
+        ...(sumoth ? { speed: a[4] } : { speed_knots: a[4] }),
         satellites: a[5],
+        ...(sumoth && +a[5] === 0 ? { fix: 0 } : {}),
       };
     });
   } else {
