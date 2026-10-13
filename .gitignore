@@ -1,0 +1,29 @@
+# Dependencies, generated output and local editors
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+.DS_Store
+.vscode/
+*.code-workspace
+*.log
+.env
+.env.*
+!.env.example
+# Recordings may contain precise location data
+sessions/
+recordings/
+*.csv
+*.smc
+!dummy_*.csv
+!public/demo.csv
+!tests/fixtures/*.csv
+# Previous implementations retained locally, outside this webapp repository
+vanilla_app/
+main.go
+go.mod
+go.sum
+bun.lock
+gap_analysis.md.resolved
+legacy-local/

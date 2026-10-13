@@ -1,0 +1,20 @@
+name: Proposta
+description: Proponi un miglioramento della piattaforma
+title: "[Proposta] "
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Problema da risolvere
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Comportamento proposto e criterio di completamento
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Alternative, compatibilità firmware e dati

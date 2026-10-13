@@ -1,0 +1,27 @@
+name: Bug
+description: Segnala un comportamento riproducibile
+title: "[Bug] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema e comportamento atteso
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Passaggi per riprodurre
+      description: Usa dati sintetici; non allegare sessioni GPS reali o credenziali.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Ambiente
+      description: Browser, sistema, commit app, firmware, trasporto e sensori se pertinenti.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidenza e limiti
+      description: Screenshot, errore, campione sintetico e distinzione tra simulazione e hardware.

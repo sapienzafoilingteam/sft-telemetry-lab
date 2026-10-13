@@ -1,0 +1,47 @@
+{
+  "name": "sft-telemetry-lab",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.js",
+    "format": "prettier --write src tests docs .github *.md *.js *.json .eslintrc.cjs",
+    "format:check": "prettier --check src tests docs .github *.md *.js *.json .eslintrc.cjs"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.300.0",
+    "papaparse": "^5.4.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-leaflet": "^4.2.1",
+    "recharts": "^2.10.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.1",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^5.2.0",
+    "autoprefixer": "^10.4.27",
+    "eslint": "^8.55.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "postcss": "^8.5.8",
+    "prettier": "^3.6.2",
+    "tailwindcss": "^4.2.1",
+    "vite": "^7.3.7"
+  },
+  "description": "Sapienza Foiling Team telemetry acquisition, session archive and analysis webapp",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sapienzafoilingteam/sft-telemetry-lab.git"
+  }
+}

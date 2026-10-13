@@ -1,0 +1,8 @@
+node_modules
+dist
+vanilla_app
+legacy-local
+package-lock.json
+bun.lock
+*.csv
+*.smc
