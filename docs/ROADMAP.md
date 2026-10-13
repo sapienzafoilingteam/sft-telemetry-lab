@@ -8,6 +8,9 @@ L'obiettivo è una catena verificabile: sensori → trasporto → registrazione 
 - [x] Importazione, archivio locale con note, esportazione e intervalli.
 - [x] Test parser/unità, installazione riproducibile e CI.
 - [ ] Scegliere licenza e responsabilità di manutenzione con il team.
+- [x] Importazione e roundtrip del SMC binario osservato, con fixture sintetiche.
+- [x] Verificare unità SMC3 e importare il CSV della dashboard SuMoth.
+- [ ] Confermare i campi opachi della specifica SMC prima di produrre nuovi file per l’elettronica.
 - [ ] Definire unità, clock e validità GPS comuni con la repo firmware.
 - [ ] Salvare registrazioni a blocchi e recuperarle dopo crash.
 - [ ] Misurare perdita pacchetti, gap, riavvii e riconnessioni.

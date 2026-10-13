@@ -1,6 +1,12 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
 import {
+  isSMC,
+  parseSMC,
+  encodeSMCOriginal,
+  withSMCSpeedUnit,
+} from "./lib/smc";
+import {
   Activity,
   Radio,
   FolderOpen,
@@ -30,7 +36,9 @@ import {
 import { listSessions, saveSession, deleteSession } from "./lib/storage";
 
 const duration = (seconds) =>
-  `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
+  seconds >= 3600
+    ? `${Math.floor(seconds / 3600)}:${String(Math.floor((seconds % 3600) / 60)).padStart(2, "0")}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`
+    : `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 const fresh = (samples, name, source) => ({
   id: crypto.randomUUID(),
   name,
@@ -107,33 +115,57 @@ function App() {
     await run(async () => {
       let last;
       for (const file of files) {
-        const text = await file.text();
-        if (file.name.endsWith(".json")) {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        if (isSMC(bytes)) {
+          const parsed = parseSMC(bytes);
+          last = {
+            ...fresh(
+              parsed.samples,
+              file.name.replace(/\.[^.]+$/, ""),
+              "SuMoth SMC",
+            ),
+            smc: parsed.smc,
+          };
+        } else if (file.name.toLowerCase().endsWith(".json")) {
+          const text = new TextDecoder().decode(bytes);
           const data = JSON.parse(text);
           if (data.version !== 1 || !Array.isArray(data.session?.samples))
             throw new Error(
               "Backup non valido. Usa un’esportazione di Telemetry Lab.",
             );
-          const samples = parseCSV(
-            Papa.unparse(
-              data.session.samples.map((r) => ({
-                ...r,
-                ax: r.acc_x,
-                ay: r.acc_y,
-                az: r.acc_z,
-                acc_x: undefined,
-                acc_y: undefined,
-                acc_z: undefined,
-              })),
-            ),
-          );
+          const restoredSMC = data.session.smc
+            ? parseSMC(encodeSMCOriginal(data.session))
+            : null;
+          const samples = restoredSMC
+            ? withSMCSpeedUnit(restoredSMC.samples, data.session.smc.speedUnit)
+            : parseCSV(
+                Papa.unparse(
+                  data.session.samples.map((r) => ({
+                    ...r,
+                    ax: r.acc_x,
+                    ay: r.acc_y,
+                    az: r.acc_z,
+                    acc_x: undefined,
+                    acc_y: undefined,
+                    acc_z: undefined,
+                  })),
+                ),
+              );
           last = {
             ...fresh(samples, String(data.session.name || file.name), "Backup"),
             notes: String(data.session.notes || ""),
+            ...(restoredSMC
+              ? {
+                  smc: {
+                    ...restoredSMC.smc,
+                    speedUnit: data.session.smc.speedUnit,
+                  },
+                }
+              : {}),
           };
         } else
           last = fresh(
-            parseCSV(text),
+            parseCSV(new TextDecoder().decode(bytes)),
             file.name.replace(/\.[^.]+$/, ""),
             "CSV",
           );
@@ -225,6 +257,20 @@ function App() {
           "Dati simulati",
         ),
       );
+    });
+  const demoSMC = () =>
+    run(async () => {
+      const response = await fetch("/demo.smc");
+      if (!response.ok) throw new Error("Esempio SMC non disponibile.");
+      const parsed = parseSMC(await response.arrayBuffer());
+      open({
+        ...fresh(
+          parsed.samples,
+          "SuMoth · esempio binario sintetico",
+          "Dati simulati",
+        ),
+        smc: parsed.smc,
+      });
     });
   const selected = useMemo(
     () =>
@@ -427,8 +473,9 @@ function App() {
                 <FolderOpen size={32} className="brand-icon" />
                 <h2>Porta una sessione nel Lab</h2>
                 <p>
-                  Importa CSV GPS, IMU o una sessione completa dell’ESP32. I
-                  dati restano disponibili nell’archivio di questo browser.
+                  Importa file SMC SuMoth, CSV GPS/IMU o una sessione completa
+                  dell’ESP32. I dati restano disponibili nell’archivio di questo
+                  browser.
                 </p>
                 <label className="drop-zone">
                   <Upload size={28} />
@@ -443,6 +490,9 @@ function App() {
                 </label>
                 <button className="text-button" onClick={demo}>
                   Esplora una sessione di esempio <ArrowUpRight size={16} />
+                </button>
+                <button className="text-button" onClick={demoSMC}>
+                  Esempio SuMoth SMC · sintetico <ArrowUpRight size={16} />
                 </button>
               </section>
             </div>
@@ -573,6 +623,78 @@ function App() {
             </section>
           ) : (
             <>
+              {session.smc && (
+                <section className="panel smc-details">
+                  <p className="eyebrow">
+                    SUMOTH / SMC BINARIO · PROFILO OSSERVATO V3
+                  </p>
+                  <h2>Sessione GPS dell’elettronica SuMoth</h2>
+                  <p>
+                    {session.smc.deviceId} · {session.smc.date} ·{" "}
+                    {session.smc.recordCount.toLocaleString("it-IT")} record ·
+                    orario dispositivo, fuso non dichiarato.
+                  </p>
+                  <p className="helper">
+                    I record mantengono l’ordine originale. La precisione
+                    dell’orario è di un secondo: più campioni possono avere lo
+                    stesso tempo. Il file contiene GPS e velocità grezza; nessun
+                    dato IMU o altitudine.
+                  </p>
+                  <label className="field">
+                    Interpretazione della velocità SMC
+                    <select
+                      value={session.smc.speedUnit}
+                      onChange={(e) =>
+                        setSession({
+                          ...session,
+                          samples: withSMCSpeedUnit(
+                            session.samples,
+                            e.target.value,
+                          ),
+                          smc: { ...session.smc, speedUnit: e.target.value },
+                        })
+                      }
+                    >
+                      <option value="unknown">
+                        Solo valore grezzo · nessuna conversione
+                      </option>
+                      <option value="mm/s">
+                        Millimetri al secondo · verificati con CSV SuMoth
+                      </option>
+                      <option value="cm/s">Centimetri al secondo</option>
+                      <option value="0.01 kn">Centesimi di nodo</option>
+                    </select>
+                  </label>
+                  <p className="helper">
+                    {session.smc.speedUnit === "unknown"
+                      ? "Conversione disattivata. Per il profilo osservato SMC3 l’unità mm/s è stata verificata confrontando tutti i campioni con il CSV della dashboard SuMoth."
+                      : session.smc.speedUnit === "mm/s"
+                        ? "Velocità in mm/s, convertita in nodi. Verifica: tutti i 39.145 campioni del file di riferimento corrispondono al CSV ufficiale in km/h. Frequenza nominale dichiarata nel CSV: 2 Hz."
+                        : `Interpretazione alternativa scelta: ${session.smc.speedUnit}. Differisce dall’unità mm/s verificata per questo profilo.`}
+                  </p>
+                  <button
+                    className="button"
+                    onClick={() =>
+                      run(async () =>
+                        download(
+                          `${session.name}.smc`,
+                          encodeSMCOriginal(session),
+                          "application/octet-stream",
+                        ),
+                      )
+                    }
+                  >
+                    <Download size={16} />
+                    Esporta SMC originale
+                  </button>
+                  <p className="helper">
+                    Esporta l’intera registrazione originale, con intestazione e
+                    valori grezzi. Per gli intervalli usa CSV; nuovi file per
+                    l’elettronica richiedono la conferma dei campi ancora
+                    sconosciuti.
+                  </p>
+                </section>
+              )}
               <section className="panel session-details">
                 <div className="section-heading">
                   <div>
@@ -729,7 +851,9 @@ function App() {
                   {current?.roll_deg?.toFixed(1) ?? "—"}° · pitch{" "}
                   {current?.pitch_deg?.toFixed(1) ?? "—"}° · velocità{" "}
                   {current?.speed_knots?.toFixed(1) ?? "—"} kn. ¹ Media dei
-                  campioni GPS disponibili.
+                  campioni GPS disponibili.{" "}
+                  {current?.speed_raw !== undefined &&
+                    `Velocità grezza: ${current.speed_raw}.`}
                 </p>
               </section>
               {gps.length > 0 && (
